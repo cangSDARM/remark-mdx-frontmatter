@@ -1,19 +1,16 @@
-# remark-mdx-frontmatter
-
-[![github actions](https://github.com/remcohaszing/remark-mdx-frontmatter/actions/workflows/ci.yml/badge.svg)](https://github.com/remcohaszing/remark-mdx-frontmatter/actions/workflows/ci.yml)
-[![npm](https://img.shields.io/npm/v/remark-mdx-frontmatter)](https://www.npmjs.com/package/remark-mdx-frontmatter)
-[![prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://prettier.io)
-[![codecov](https://codecov.io/gh/remcohaszing/remark-mdx-frontmatter/branch/main/graph/badge.svg)](https://codecov.io/gh/remcohaszing/remark-mdx-frontmatter)
+# @allen/remark-mdx-frontmatter
 
 A [remark](https://remark.js.org) plugin for converting frontmatter metadata into MDX exports
 
 ## Installation
 
+**Not available yet**
+
 This package depends on the AST output by
 [remark-frontmatter](https://github.com/remarkjs/remark-frontmatter)
 
 ```sh
-npm install remark-frontmatter remark-mdx-frontmatter
+npm install remark-frontmatter @allen/remark-mdx-frontmatter
 ```
 
 ## Usage
@@ -38,7 +35,7 @@ import { readFile } from 'node:fs/promises';
 
 import { compile } from '@mdx-js/mdx';
 import remarkFrontmatter from 'remark-frontmatter';
-import remarkMdxFrontmatter from 'remark-mdx-frontmatter';
+import remarkMdxFrontmatter from '@allen/remark-mdx-frontmatter';
 
 const { contents } = await compile(await readFile('example.mdx'), {
   jsx: true,
@@ -73,6 +70,10 @@ is a function that accepts the frontmatter data as a string, and returns the par
 `yaml` nodes will be parsed using [`yaml`](https://github.com/eemeli/yaml) and `toml` nodes using
 [`toml`](https://github.com/BinaryMuse/toml-node).
 
+### `nodeTravel`
+
+Allows you to manipulate the corresponding frontmatter directly, instead of injecting it into the generated js
+
 ### License
 
-[MIT](LICENSE.md) @ [Remco Haszing](https://github.com/remcohaszing)
+[MIT](LICENSE.md) @ [Allen Lee](https://github.com/cangSDARM)

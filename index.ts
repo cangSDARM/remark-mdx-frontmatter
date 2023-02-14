@@ -8,6 +8,8 @@ import { parse as parseYaml } from 'yaml';
 
 type FrontmatterParsers = Record<string, (value: string) => unknown>;
 
+export type Traveler = (frontmatterData: any) => void | false;
+
 export interface RemarkMdxFrontmatterOptions {
   /**
    * If specified, the YAML data is exported using this name. Otherwise, each
@@ -25,6 +27,14 @@ export interface RemarkMdxFrontmatterOptions {
    * `toml` nodes using [`toml`](https://github.com/BinaryMuse/toml-node).
    */
   parsers?: FrontmatterParsers;
+
+  /**
+   * Allow you travel all data when parse working
+   * @param name the frontmatter name
+   * @param data the frontmatter data
+   * @returns return false if you want exclude this in exports
+   */
+  nodeTravel?: Traveler;
 }
 
 /**
@@ -81,15 +91,18 @@ function createExport(object: object): MdxjsEsm {
 const remarkMdxFrontmatter: Plugin<[RemarkMdxFrontmatterOptions?], Root> = ({
   name,
   parsers,
+  nodeTravel,
 } = {}) => {
   const allParsers: FrontmatterParsers = {
     yaml: parseYaml,
     toml: parseToml,
     ...parsers,
   };
+  const traveler = nodeTravel || (() => void 0);
 
   return (ast) => {
-    const imports: MdxjsEsm[] = [];
+    let dataGather: any = undefined;
+    let travelResult = false;
 
     if (name && !isValidIdentifierName(name)) {
       throw new Error(
@@ -107,7 +120,7 @@ const remarkMdxFrontmatter: Plugin<[RemarkMdxFrontmatterOptions?], Root> = ({
       const parser = allParsers[node.type];
 
       const { value } = node as Literal;
-      const data = parser(value);
+      const data = parser(value); //data like: { title: 'xx', date: '1997/01' }
       if (data == null) {
         continue;
       }
@@ -115,14 +128,19 @@ const remarkMdxFrontmatter: Plugin<[RemarkMdxFrontmatterOptions?], Root> = ({
         throw new Error(`Expected frontmatter data to be an object, got:\n${value}`);
       }
 
-      imports.push(createExport(name ? { [name]: data } : (data as object)));
+      dataGather = Object.assign(dataGather || {}, data);
     }
 
-    if (name && !imports.length) {
-      imports.push(createExport({ [name]: undefined }));
+    if (typeof traveler(dataGather) === 'boolean') return;
+
+    const exported: MdxjsEsm[] = [];
+    dataGather = name ? { [name]: dataGather } : dataGather;
+
+    if (dataGather) {
+      exported.push(createExport(dataGather));
     }
 
-    ast.children.unshift(...imports);
+    ast.children.unshift(...exported);
   };
 };
 
