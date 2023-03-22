@@ -8,7 +8,23 @@ import { parse as parseYaml } from 'yaml';
 
 type FrontmatterParsers = Record<string, (value: string) => unknown>;
 
-export type Traveler = (frontmatterData: any) => void | false;
+/**
+ * - `mdx-export`: export the data using mdxjsEsm node.
+ * - `vfile-data`: export the data in the data[name || 'frontmatter'] of compiled result.
+ * - `skip`: do nothing.
+ */
+type Action = 'mdx-export' | 'vfile-data' | 'skip';
+
+/**
+ * @param name the frontmatter name
+ * @param data the frontmatter data
+ *
+ * @returns [action, new frontmatterData]
+ * */
+export type Traveler = (
+  name: string,
+  frontmatterData: any,
+) => [action: Action, newFrontmatterData: any];
 
 export interface RemarkMdxFrontmatterOptions {
   /**
@@ -30,11 +46,11 @@ export interface RemarkMdxFrontmatterOptions {
 
   /**
    * Allow you travel all data when parse working
-   * @param name the frontmatter name
-   * @param data the frontmatter data
-   * @returns return false if you want exclude this in exports
+   * - `mdx-export`: export the data using mdxjsEsm node.
+   * - `vfile-data`: export the data in the data[name || 'frontmatter'] of compiled result.
+   * - `skip`: do nothing.
    */
-  nodeTravel?: Traveler;
+  action?: Traveler | Action;
 }
 
 /**
@@ -82,6 +98,8 @@ function createExport(object: object): MdxjsEsm {
   };
 }
 
+const defaultName = 'frontmatter';
+
 /**
  * A remark plugin to expose frontmatter data as named exports.
  *
@@ -91,18 +109,18 @@ function createExport(object: object): MdxjsEsm {
 const remarkMdxFrontmatter: Plugin<[RemarkMdxFrontmatterOptions?], Root> = ({
   name,
   parsers,
-  nodeTravel,
+  action = 'mdx-export',
 } = {}) => {
   const allParsers: FrontmatterParsers = {
     yaml: parseYaml,
     toml: parseToml,
     ...parsers,
   };
-  const traveler = nodeTravel || (() => void 0);
+  const traveler =
+    typeof action === 'string' ? () => action : action || ((data) => ['mdx-export', data]);
 
-  return (ast) => {
+  return (ast, file) => {
     let dataGather: any = undefined;
-    let travelResult = false;
 
     if (name && !isValidIdentifierName(name)) {
       throw new Error(
@@ -131,16 +149,23 @@ const remarkMdxFrontmatter: Plugin<[RemarkMdxFrontmatterOptions?], Root> = ({
       dataGather = Object.assign(dataGather || {}, data);
     }
 
-    if (typeof traveler(dataGather) === 'boolean') return;
+    const [action, newData] = traveler(name || defaultName, dataGather);
+    dataGather = newData;
 
-    const exported: MdxjsEsm[] = [];
-    dataGather = name ? { [name]: dataGather } : dataGather;
-
-    if (dataGather) {
-      exported.push(createExport(dataGather));
+    switch (action) {
+      case 'mdx-export':
+        dataGather = name ? { [name]: dataGather } : dataGather;
+        if (dataGather) {
+          ast.children.unshift(createExport(dataGather));
+        }
+        break;
+      case 'vfile-data':
+        file.data[name || defaultName] = dataGather;
+        break;
+      case 'skip':
+      default:
+      //
     }
-
-    ast.children.unshift(...exported);
   };
 };
 
