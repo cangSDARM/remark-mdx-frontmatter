@@ -1,6 +1,6 @@
 {
-  "name": "@allen/remark-mdx-frontmatter",
-  "version": "2.3.0",
+  "name": "@allenlee/remark-mdx-frontmatter",
+  "version": "3.1.1",
   "description": "A remark-mdx-frontmatter fork",
   "author": "Allen Lee<648384410li@gmail.com>",
   "license": "MIT",

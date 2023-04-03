@@ -116,8 +116,8 @@ const remarkMdxFrontmatter: Plugin<[RemarkMdxFrontmatterOptions?], Root> = ({
     toml: parseToml,
     ...parsers,
   };
-  const traveler =
-    typeof action === 'string' ? () => action : action || ((data) => ['mdx-export', data]);
+  const traveler: Traveler =
+    typeof action === 'string' ? (d) => [action, d] : action || ((data) => ['mdx-export', data]);
 
   return (ast, file) => {
     let dataGather: any = undefined;
