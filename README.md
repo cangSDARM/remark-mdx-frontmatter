@@ -6,8 +6,6 @@ Based on [remark-mdx-frontmatter 2.1.1](https://github.com/remcohaszing/remark-m
 
 ## Installation
 
-**Not available yet**
-
 This package depends on the AST output by
 [remark-frontmatter](https://github.com/remarkjs/remark-frontmatter)
 
