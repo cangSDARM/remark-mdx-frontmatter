@@ -36,7 +36,7 @@
     "node": ">=14.0.0"
   },
   "scripts": {
-    "prepack": "tsc --noEmit false",
+    "build": "tsc --noEmit false",
     "test": "c8 tsx ./test.ts"
   },
   "dependencies": {
