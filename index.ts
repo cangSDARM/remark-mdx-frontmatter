@@ -117,7 +117,9 @@ const remarkMdxFrontmatter: Plugin<[RemarkMdxFrontmatterOptions?], Root> = ({
     ...parsers,
   };
   const traveler: Traveler =
-    typeof action === 'string' ? (d) => [action, d] : action || ((data) => ['mdx-export', data]);
+    typeof action === 'string'
+      ? (_n, fd) => [action, fd]
+      : action || ((_n, data) => ['mdx-export', data]);
 
   return (ast, file) => {
     let dataGather: any = undefined;
